@@ -27,8 +27,10 @@ public class MyActivity extends Activity {
 
     webView = (WebView) findViewById(R.id.webview);
     webView.setWebViewClient(new MyWebViewClient());
+//    webView.getSettings().setBuiltInZoomControls(true);
+//    webView.getSettings().setSupportZoom(true);
     webView.getSettings().setJavaScriptEnabled(true);
-    webView.loadUrl("https://" + URL_PRODUCTION);
+    webView.loadUrl("https://" + URL_DEV);
   }
 
 
