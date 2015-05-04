@@ -1,6 +1,8 @@
 package com.unience;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -9,6 +11,10 @@ import android.webkit.WebViewClient;
 
 
 public class MyActivity extends Activity {
+
+  private static final String URL_PRODUCTION = "www.unience.com";
+  private static final String URL_STAGE = "stage.uniience.com";
+  private static final String URL_DEV = "dev.uniience.com";
 
   private WebView webView;
 
@@ -21,16 +27,30 @@ public class MyActivity extends Activity {
     webView = (WebView) findViewById(R.id.webview);
     webView.setWebViewClient(new MyWebViewClient());
     webView.getSettings().setJavaScriptEnabled(true);
-    webView.loadUrl("https://www.unience.com");
+    webView.loadUrl("https://" + URL_PRODUCTION);
   }
 
 
   private class MyWebViewClient extends WebViewClient {
     @Override
     public boolean shouldOverrideUrlLoading(WebView view, String url) {
-      view.loadUrl(url);
+      if (isTargetUrlFromUnience(url)) {
+        // This is my web site, so do not override; let my WebView load the page
+        return false;
+      }
+      // Otherwise, the link is not for a page on my site, so launch another Activity that handles URLs
+      Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+      startActivity(intent);
       return true;
     }
+  }
+
+  private boolean isTargetUrlFromUnience(String url) {
+
+    String targetHost = Uri.parse(url).getHost();
+    return URL_PRODUCTION.equalsIgnoreCase(targetHost) ||
+           URL_STAGE.equalsIgnoreCase(targetHost) ||
+           URL_DEV.equalsIgnoreCase(targetHost);
   }
 
 
