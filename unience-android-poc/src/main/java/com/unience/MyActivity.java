@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 
 
 public class MyActivity extends Activity {
@@ -18,8 +19,18 @@ public class MyActivity extends Activity {
     setContentView(R.layout.activity_my);
 
     webView = (WebView) findViewById(R.id.webview);
+    webView.setWebViewClient(new MyWebViewClient());
     webView.getSettings().setJavaScriptEnabled(true);
     webView.loadUrl("https://www.unience.com");
+  }
+
+
+  private class MyWebViewClient extends WebViewClient {
+    @Override
+    public boolean shouldOverrideUrlLoading(WebView view, String url) {
+      view.loadUrl(url);
+      return true;
+    }
   }
 
 
