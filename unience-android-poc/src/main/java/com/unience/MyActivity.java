@@ -1,12 +1,17 @@
 package com.unience;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
+import android.net.http.SslError;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
@@ -15,7 +20,9 @@ public class MyActivity extends Activity {
 
   private static final String URL_PRODUCTION = "www.unience.com";
   private static final String URL_STAGE = "stage.uniience.com";
-  private static final String URL_DEV = "dev.uniience.com";
+  private static final String URL_DEV = "dev.uniience.com:8443/unience";
+
+  final Context context = this;
 
   private WebView webView;
 
@@ -30,13 +37,15 @@ public class MyActivity extends Activity {
 //    webView.getSettings().setBuiltInZoomControls(true);
 //    webView.getSettings().setSupportZoom(true);
     webView.getSettings().setJavaScriptEnabled(true);
-    webView.loadUrl("https://" + URL_DEV);
+    webView.loadUrl("https://" + URL_STAGE);
   }
 
 
   private class MyWebViewClient extends WebViewClient {
+
     @Override
     public boolean shouldOverrideUrlLoading(WebView view, String url) {
+
       if (isTargetUrlFromUnience(url)) {
         // This is my web site, so do not override; let my WebView load the page
         return false;
@@ -45,6 +54,46 @@ public class MyActivity extends Activity {
       Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
       startActivity(intent);
       return true;
+    }
+
+    @Override
+    public void onReceivedSslError(WebView view, final SslErrorHandler handler, SslError error) {
+
+      AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
+      String message = "Certificate error.";
+      switch (error.getPrimaryError()) {
+        case SslError.SSL_UNTRUSTED:
+          message = "Certificate is untrusted.";
+          break;
+        case SslError.SSL_EXPIRED:
+          message = "Certificate has expired.";
+          break;
+        case SslError.SSL_IDMISMATCH:
+          message = "Certificate ID is mismatched.";
+          break;
+        case SslError.SSL_NOTYETVALID:
+          message = "Certificate is not yet valid.";
+          break;
+      }
+      message += " Do you want to continue anyway?";
+      alertDialogBuilder
+          .setTitle("SSL Certificate Error")
+          .setMessage(message)
+          .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+
+              handler.proceed();
+            }
+          })
+          .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+
+              handler.cancel();
+            }
+          });
+
+      AlertDialog alertDialog = alertDialogBuilder.create();
+      alertDialog.show();
     }
   }
 
